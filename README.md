@@ -52,9 +52,9 @@ Unlike traditional monitors that rely solely on keywords, Sentinel uses a **Hybr
 
 Threats are prioritized using our proprietary risk formula:
 
-* ** (Sentiment Risk):** Derived from NLP polarity. High hostility = High .
-* ** (Velocity Risk):** Rate of spread (Likes/Retweets per minute). Viral = High .
-* ** (Evidence Credibility):** Domain trust score. Unverified links (Pastebin) = Low  (which increases Risk).
+* **(Sentiment Risk):** Derived from NLP polarity. High hostility = High .
+* **(Velocity Risk):** Rate of spread (Likes/Retweets per minute). Viral = High .
+* **(Evidence Credibility):** Domain trust score. Unverified links (Pastebin) = Low  (which increases Risk).
 
 ---
 
