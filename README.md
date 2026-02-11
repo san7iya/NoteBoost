@@ -1,7 +1,7 @@
 # 🛡️ NoteBoost 
 ### **Real-Time Social Threat Intelligence & Automated Triage Engine**
 
-**NoteBoost ** is a next-generation cybersecurity dashboard that monitors social media signals for coordinated disinformation campaigns, zero-day exploit leaks, and brand reputation threats.
+**NoteBoost** is a next-generation cybersecurity dashboard that monitors social media signals for coordinated disinformation campaigns, zero-day exploit leaks, and brand reputation threats.
 
 Unlike traditional monitors that rely solely on keywords, Sentinel uses a **Hybrid Intelligence Engine**:
 
