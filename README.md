@@ -129,4 +129,4 @@ The system includes a **Simulation Mode** to demonstrate detection capabilities:
 
 ## 📜 License
 
-MIT License. Built for the [Hackathon Name] 2026.
+MIT License. Built for the AI Hackathon 2026.
