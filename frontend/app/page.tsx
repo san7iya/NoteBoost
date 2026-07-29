@@ -69,7 +69,7 @@ export default function HomePage() {
             <Shield className="h-7 w-7 text-emerald-400" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white">NoteBoost Sentinel</h1>
+            <h1 className="text-2xl font-bold text-white">NoteBoost</h1>
             <p className="mt-1 text-xs font-mono uppercase tracking-[0.2em] text-emerald-500/80">
               Secure Access Terminal v2.4
             </p>

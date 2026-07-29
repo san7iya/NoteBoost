@@ -89,7 +89,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-          <h2 className="text-2xl font-bold text-white mb-6">Live Sentinel Feed</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Live NoteBoost Feed</h2>
 
           {loading ? (
             <div className="flex flex-col gap-4">

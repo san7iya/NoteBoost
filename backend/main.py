@@ -39,7 +39,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "NoteBoost Sentinel backend is running."}
+    return {"status": "ok", "message": "NoteBoost backend is running."}
 
 def calculate_sve_score(text, likes, retweets, mins_ago):
     # 1. S (Sentiment): Normalized 0 to 1 (1.0 = Highly Negative)
@@ -130,189 +130,69 @@ async def test_feed():
         })
     return processed
 
-    processed = []
-    for item in raw_data:
-        stats = calculate_sve_score(item["text"], item["likes"], item["retweets"], item["mins_ago"])
-        processed.append({
-            "username": item["user"],
-            "text": item["text"],
-            "timestamp": f"{item['mins_ago']}m ago",
-            "riskScore": stats["score"],
-            "s_val": stats["s"],
-            "v_val": stats["v"],
-            "e_val": stats["e"],
-            "avatarUrl": f"https://api.dicebear.com/7.x/avataaars/svg?seed={item['avatar']}"
-        })
-    return processed
-
-class ThreatAnalysisRequest(BaseModel):
-    tweet_text: str
-
-# In backend/main.py
-
-# In backend/main.py
-
-class ThreatAnalysisRequest(BaseModel):
-    tweet_text: str
-
-# In backend/main.py
-
 class ThreatAnalysisRequest(BaseModel):
     tweet_text: str
 
 @app.post("/analyze-threat")
 async def analyze_threat(request: ThreatAnalysisRequest):
-    # 1. Simulate Latency (Scanning Effect)
-    import asyncio
-    await asyncio.sleep(1.5) 
-    
-    # 2. Convert text to lowercase for easy matching
-    text = request.tweet_text.lower()
+    """
+    Sends the tweet to Gemini 2.0 Flash for verification: a
+    Safe/Suspect/Malicious verdict, a confidence score, and a
+    one-sentence justification.
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Missing Gemini API key")
 
-    # --- SCENARIO 1: THE VILLAIN (@DeepNet_Ops) ---
-    # Trigger: Tweet contains "zero-day" or "exploit"
-    if "zero-day" in text or "exploit" in text:
-        return {
-            "verdict": "Malicious",
-            "confidence": 0.99,
-            "summary": "CRITICAL THREAT: Analysis confirms the linked Pastebin code contains a valid Remote Code Execution (RCE) payload. This matches the 'Red-Lazarus' attack signature targeting OAuth endpoints.",
-            "analysis_points": [
-                {
-                    "title": "Payload Signature",
-                    "desc": "Code snippet in bio matches known CVE-2025-8821 exploit primitive.",
-                    "status": "danger" 
-                },
-                {
-                    "title": "Origin Analysis",
-                    "desc": "Account creation time < 24h. IP headers trace to known botnet exit node.",
-                    "status": "danger"
-                },
-                {
-                    "title": "Propagation Pattern",
-                    "desc": "High-velocity retweets from unverified accounts indicate coordinated amplification.",
-                    "status": "warning"
+    system_instruction = (
+        "You are an expert Cybersecurity Analyst for NoteBoost. "
+        "Analyze tweets for misinformation, social engineering, or coordinated attacks. "
+        "Provide a concise verdict (Safe, Malicious, or Suspect), a confidence score (0-1), "
+        "and a 1-sentence justification."
+    )
+
+    try:
+        if USE_GENAI:
+            client = gemini_client.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=request.tweet_text,
+                config={
+                    "system_instruction": system_instruction,
+                    "response_mime_type": "application/json",
                 }
-            ],
-            "sources": ["NIST CVE Database", "Unit 42 Threat Intel", "CrowdStrike Feed"]
-        }
+            )
+            raw_payload = getattr(response, "parsed", None)
+            if raw_payload is None:
+                raw_text = getattr(response, "text", None)
+                if raw_text is None and getattr(response, "candidates", None):
+                    raw_text = response.candidates[0].content.parts[0].text
+                raw_payload = json.loads(raw_text or "{}")
+        else:
+            gemini_client.configure(api_key=api_key)
+            model = gemini_client.GenerativeModel(
+                model_name="gemini-2.0-flash",
+                system_instruction=system_instruction
+            )
+            response = model.generate_content(
+                request.tweet_text,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            raw_payload = json.loads(response.text or "{}")
 
-    # --- SCENARIO 2: THE FALSE POSITIVE (@DevTeam_Lead) ---
-    # Trigger: Tweet contains "killing" or "dead"
-    elif "killing" in text or "dead" in text:
+        verdict = raw_payload.get("verdict")
+        confidence = raw_payload.get("confidence")
+        explanation = raw_payload.get("explanation")
+        if verdict is None or confidence is None or explanation is None:
+            raise ValueError("Gemini response missing required fields")
+
         return {
-            "verdict": "Safe",
-            "confidence": 0.96,
-            "summary": "FALSE POSITIVE DISMISSED: Contextual analysis confirms 'killing' and 'dead' refer to software lifecycle management (server sunsetting), not physical violence or malicious intent.",
-            "analysis_points": [
-                {
-                    "title": "Context Awareness",
-                    "desc": "NLP Sentiment Analysis identifies 'DevOps/Infrastructure' context with 98% certainty.",
-                    "status": "verified"
-                },
-                {
-                    "title": "Intent Verification",
-                    "desc": "User history shows consistent technical jargon usage matching internal roadmap.",
-                    "status": "verified"
-                },
-                {
-                    "title": "Internal Correlation",
-                    "desc": "Timestamp matches scheduled maintenance window #8829-QX.",
-                    "status": "verified"
-                }
-            ],
-            "sources": ["Internal Jira Logs", "DevOps Schedule", "User Reputation Graph"]
+            "verdict": verdict,
+            "confidence": confidence,
+            "explanation": explanation
         }
-
-    # --- SCENARIO 3: DEFAULT / SAFE (@Tech_Daily) ---
-    # Trigger: Anything else
-    else:
-        return {
-            "verdict": "Safe",
-            "confidence": 0.85,
-            "summary": "Standard user interaction detected. No coordinated attack indicators were detected in the payload. Language and links remain within normal thresholds.",
-            "analysis_points": [
-                {
-                    "title": "Language Sentiment",
-                    "desc": "Sentiment volatility remains within the baseline range for normal posts.",
-                    "status": "verified"
-                },
-                {
-                    "title": "Propagation Velocity",
-                    "desc": "Engagement growth does not indicate coordinated amplification.",
-                    "status": "verified"
-                },
-                {
-                    "title": "Evidence Links",
-                    "desc": "Referenced domains do not match known threat intelligence feeds.",
-                    "status": "verified"
-                }
-            ],
-            "sources": ["X Signal", "NoteBoost RAG", "Threat Intel Cache"]
-        }
-# @app.post("/analyze-threat")
-# async def analyze_threat(request: ThreatAnalysisRequest):
-#     """
-#     Agentic RAG workflow: Sends tweet to Gemini 2.0 Flash
-#     for expert verification of the R_context score.
-#     """
-#     print("Request received")
-#     api_key = os.getenv("GEMINI_API_KEY")
-#     if not api_key:
-#         print("MISSING API KEY: GEMINI_API_KEY is not set")
-#         raise HTTPException(status_code=500, detail="Missing Gemini API key")
-
-#     system_instruction = (
-#         "You are an expert Cybersecurity Analyst for the NoteBoost Sentinel Engine. "
-#         "Analyze tweets for misinformation, social engineering, or coordinated attacks. "
-#         "Provide a concise verdict (Safe, Malicious, or Suspect), a confidence score (0-1), "
-#         "and a 1-sentence justification."
-#     )
-
-#     try:
-#         print("Calling Gemini API...")
-#         if USE_GENAI:
-#             client = gemini_client.Client(api_key=api_key)
-#             response = client.models.generate_content(
-#                 model="gemini-2.0-flash",
-#                 contents=request.tweet_text,
-#                 config={
-#                     "system_instruction": system_instruction,
-#                     "response_mime_type": "application/json",
-#                 }
-#             )
-#             raw_payload = getattr(response, "parsed", None)
-#             if raw_payload is None:
-#                 raw_text = getattr(response, "text", None)
-#                 if raw_text is None and getattr(response, "candidates", None):
-#                     raw_text = response.candidates[0].content.parts[0].text
-#                 raw_payload = json.loads(raw_text or "{}")
-#         else:
-#             gemini_client.configure(api_key=api_key)
-#             model = gemini_client.GenerativeModel(
-#                 model_name="gemini-2.0-flash",
-#                 system_instruction=system_instruction
-#             )
-#             response = model.generate_content(
-#                 request.tweet_text,
-#                 generation_config={"response_mime_type": "application/json"}
-#             )
-#             raw_payload = json.loads(response.text or "{}")
-
-#         print("Gemini Response received")
-#         verdict = raw_payload.get("verdict")
-#         confidence = raw_payload.get("confidence")
-#         explanation = raw_payload.get("explanation")
-#         if verdict is None or confidence is None or explanation is None:
-#             raise ValueError("Gemini response missing required fields")
-
-#         return {
-#             "verdict": verdict,
-#             "confidence": confidence,
-#             "explanation": explanation
-#         }
-#     except Exception as e:
-#         print(f"GEMINI ERROR: {e}")
-#         raise HTTPException(status_code=500, detail=f"Agent analysis failed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent analysis failed: {str(e)}")
 
 # --- 3. THE REAL XPOZ LOGIC (Restored) ---
 @app.get("/fetch-following")
@@ -370,13 +250,13 @@ async def fetch_following(
 
         # Polling Loop
         if operation_id:
-            print(f"Sentinel: Background job found. Waiting for data... ID: {operation_id}")
-            for i in range(50):  
+            print(f"NoteBoost: Background job found. Waiting for data... ID: {operation_id}")
+            for i in range(50):
                 await asyncio.sleep(5)
                 status_data = await call_tool("checkOperationStatus", {"operationId": operation_id})
-                
+
                 status_res = status_data.get("result", {})
-                print(f"Sentinel: Check #{i+1} - Status: {status_res.get('status')}")
+                print(f"NoteBoost: Check #{i+1} - Status: {status_res.get('status')}")
 
                 if status_res.get("status") == "completed":
                     final_ids = status_res.get("data", [])
@@ -404,7 +284,7 @@ async def simulate_high_throughput_logs():
         "DB: Async write committed (12ms)"
     ]
     
-    print("--- SENTINEL ENGINE ONLINE: LISTENING TO FIREHOSE ---")
+    print("--- NoteBoost ingestion simulator started ---")
     
     while True:
         # Pick a random log message

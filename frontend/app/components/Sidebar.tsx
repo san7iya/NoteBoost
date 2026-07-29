@@ -8,7 +8,7 @@ export const Sidebar = () => (
       </div>
       <div className="flex flex-col leading-tight">
         <h1 className="text-xl font-bold tracking-tight text-white">NoteBoost</h1>
-        <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Sentinel Engine v2.4</span>
+        <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">NoteBoost Engine v2.4</span>
       </div>
     </div>
     <div className="space-y-8">

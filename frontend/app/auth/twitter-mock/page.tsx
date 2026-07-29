@@ -40,7 +40,7 @@ export default function TwitterMockAuthPage() {
         </div>
 
         <h1 className="mt-8 text-center text-xl font-bold text-white">
-          Authorize NoteBoost Sentinel to access your account?
+          Authorize NoteBoost to access your account?
         </h1>
 
         <div className="mt-6 space-y-3 text-sm text-slate-300">

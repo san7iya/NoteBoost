@@ -19,7 +19,7 @@ export const RightPanel = () => (
     <section className="bg-[#1e293b] border border-slate-700/50 rounded-xl shadow-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">Live Log Output</h3>
-        <span className="text-[10px] uppercase tracking-wider text-slate-500">Sentinel</span>
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">NoteBoost</span>
       </div>
       <div className="font-mono text-xs bg-black/50 p-4 rounded border border-slate-800">
         <p className="text-emerald-500">[09:24:11] Polling worker 01 started</p>
@@ -33,7 +33,7 @@ export const RightPanel = () => (
     <section className="mt-auto">
       <div className="bg-[#1e293b] border border-slate-700/50 rounded-xl shadow-lg p-4">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-white">Auto-Sentinel Active</h4>
+          <h4 className="text-sm font-semibold text-white">Auto-Triage Active</h4>
           <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">LIVE</span>
         </div>
         <p className="text-xs text-slate-400 mb-4">Adaptive weights are adjusting in real time based on incoming signal volatility.</p>
