@@ -17,6 +17,7 @@ interface GeminiTriageData {
 
 interface GeminiTriagePanelProps {
   data: GeminiTriageData;
+  latencyMs: number | null;
 }
 
 const clampPercent = (value: number) => {
@@ -26,7 +27,7 @@ const clampPercent = (value: number) => {
   return Math.max(0, Math.min(1, value));
 };
 
-export const GeminiTriagePanel = ({ data }: GeminiTriagePanelProps) => {
+export const GeminiTriagePanel = ({ data, latencyMs }: GeminiTriagePanelProps) => {
   const percent = Math.round(clampPercent(data.confidence) * 100);
   const dashArray = 2 * Math.PI * 20;
   const dashOffset = dashArray * (1 - percent / 100);
@@ -39,7 +40,9 @@ export const GeminiTriagePanel = ({ data }: GeminiTriagePanelProps) => {
             <FileText className="h-4 w-4 text-emerald-400" />
             <h3 className="text-base font-bold">Gemini Triage Packet</h3>
           </div>
-          <p className="mt-1 text-xs text-slate-500">Analysis complete • Latency 142ms</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Analysis complete{latencyMs !== null ? ` • Latency ${latencyMs}ms` : ''}
+          </p>
         </div>
         <div className="relative h-12 w-12">
           <svg className="h-12 w-12 -rotate-90" viewBox="0 0 48 48">

@@ -3,16 +3,19 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { MetricCard } from '../components/MetricCard';
-import { ThreatCard } from '../components/ThreatCard';
+import { ThreatCard, ThreatProps } from '../components/ThreatCard';
 import { RightPanel } from '../components/RightPanel';
-import { MOCK_THREATS } from '../lib/mockData';
 
-type Threat = (typeof MOCK_THREATS)[number];
+type Threat = Omit<ThreatProps, 'onReviewStart' | 'onReviewEnd' | 'onReviewComplete'>;
+
+const HIGH_RISK_THRESHOLD = 0.75;
 
 export default function Dashboard() {
   const [threats, setThreats] = useState<Threat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeReviews, setActiveReviews] = useState(0);
+  const [completedReviews, setCompletedReviews] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -64,7 +67,9 @@ export default function Dashboard() {
                 />
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-sm font-semibold text-emerald-400">12 Parallel Workers</span>
+                <span className="text-sm font-semibold text-emerald-400">
+                  {activeReviews} Active Review{activeReviews === 1 ? '' : 's'}
+                </span>
                 <button className="size-10 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 transition">
                   <span className="material-symbols-outlined text-xl">notifications</span>
                 </button>
@@ -72,9 +77,15 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <MetricCard label="Tweets Scanned" value="1,420" icon="analytics" color="emerald" />
-              <MetricCard label="High-Risk Flags" value="87" icon="warning" color="red" subValue="Priority" />
-              <MetricCard label="RAG Tasks" value="12" icon="memory" color="blue" />
+              <MetricCard label="Tweets Scanned" value={String(threats.length)} icon="analytics" color="emerald" />
+              <MetricCard
+                label="High-Risk Flags"
+                value={String(threats.filter((t) => t.riskScore >= HIGH_RISK_THRESHOLD).length)}
+                icon="warning"
+                color="red"
+                subValue={threats.some((t) => t.riskScore >= HIGH_RISK_THRESHOLD) ? 'Priority' : undefined}
+              />
+              <MetricCard label="Gemini Reviews Completed" value={String(completedReviews)} icon="memory" color="blue" />
             </div>
 
             <div className="flex items-center gap-3">
@@ -102,7 +113,13 @@ export default function Dashboard() {
             </div>
           ) : (
             threats.map((threat, index) => (
-              <ThreatCard key={index} {...threat} />
+              <ThreatCard
+                key={index}
+                {...threat}
+                onReviewStart={() => setActiveReviews((count) => count + 1)}
+                onReviewEnd={() => setActiveReviews((count) => count - 1)}
+                onReviewComplete={() => setCompletedReviews((count) => count + 1)}
+              />
             ))
           )}
         </div>

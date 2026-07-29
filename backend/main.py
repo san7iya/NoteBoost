@@ -102,21 +102,7 @@ async def test_feed():
 
     processed = []
     for item in narrative_data:
-        # We calculate S, V, E dynamically based on the input
         stats = calculate_sve_score(item["text"], item["likes"], item["retweets"], item["mins_ago"])
-        
-        # MANUAL OVERRIDES (To ensure the demo goes perfectly)
-        # We force the Villain to be 0.99 and the Dev to be 0.72
-        if item["user"] == "@DeepNet_Ops":
-            stats["score"] = 0.99
-            stats["s"] = 0.95
-            stats["v"] = 0.98
-            stats["e"] = 0.10
-        elif item["user"] == "@DevTeam_Lead":
-            stats["score"] = 0.72
-            stats["s"] = 0.85 # Artificial "High Sentiment" due to "kill/dead"
-            stats["v"] = 0.45
-            stats["e"] = 0.80
 
         processed.append({
             "username": item["user"],

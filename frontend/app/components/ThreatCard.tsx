@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GeminiTriagePanel } from './GeminiTriagePanel';
 
-interface ThreatProps {
+export interface ThreatProps {
   username: string;
   timestamp: string;
   text: string;
@@ -10,6 +10,9 @@ interface ThreatProps {
   v_val: number;
   e_val: number;
   avatarUrl: string;
+  onReviewStart?: () => void;
+  onReviewEnd?: () => void;
+  onReviewComplete?: () => void;
 }
 
 interface AnalysisResult {
@@ -26,10 +29,14 @@ export const ThreatCard = ({
   s_val,
   v_val,
   e_val,
-  avatarUrl
+  avatarUrl,
+  onReviewStart,
+  onReviewEnd,
+  onReviewComplete
 }: ThreatProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const isHigh = riskScore >= 0.75;
   const isMed = riskScore >= 0.4 && riskScore < 0.75;
   const verdictTone = analysis?.verdict?.toLowerCase() === 'malicious' ? 'border-red-500/60 text-red-300' : 'border-emerald-500/60 text-emerald-300';
@@ -63,7 +70,10 @@ export const ThreatCard = ({
     }
 
     setAnalysis(null);
+    setLatencyMs(null);
     setIsAnalyzing(true);
+    onReviewStart?.();
+    const startedAt = performance.now();
     try {
       const response = await fetch('http://127.0.0.1:8000/analyze-threat', {
         method: 'POST',
@@ -76,11 +86,14 @@ export const ThreatCard = ({
       }
 
       const data = (await response.json()) as AnalysisResult;
+      setLatencyMs(Math.round(performance.now() - startedAt));
       setAnalysis(data);
+      onReviewComplete?.();
     } catch (error) {
       alert('Unable to analyze threat. Please try again.');
     } finally {
       setIsAnalyzing(false);
+      onReviewEnd?.();
     }
   };
 
@@ -150,7 +163,7 @@ export const ThreatCard = ({
           )}
           {analysis && (
             <div className="mt-4">
-              <GeminiTriagePanel key={analysis.explanation} data={triageData} />
+              <GeminiTriagePanel key={analysis.explanation} data={triageData} latencyMs={latencyMs} />
             </div>
           )}
         </div>

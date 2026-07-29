@@ -1,1 +1,17 @@
 .env
+
+# Python
+__pycache__/
+*.pyc
+backend/venv/
+.venv/
+
+# Node (frontend/ has its own .gitignore; these cover the rest)
+node_modules/
+.next/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

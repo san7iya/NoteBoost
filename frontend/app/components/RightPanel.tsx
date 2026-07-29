@@ -2,20 +2,6 @@ import React from 'react';
 
 export const RightPanel = () => (
   <aside className="h-full border-l border-slate-800 p-6 bg-[#0F172A] flex flex-col gap-6">
-    <section className="bg-[#1e293b] border border-slate-700/50 rounded-xl shadow-lg p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">Origin Distribution</h3>
-        <span className="text-[10px] uppercase tracking-wider text-slate-500">Last 24h</span>
-      </div>
-      <div className="flex items-end gap-3 h-24">
-        <div className="w-6 rounded bg-emerald-500/40 h-10" />
-        <div className="w-6 rounded bg-emerald-500/50 h-16" />
-        <div className="w-6 rounded bg-emerald-500/30 h-8" />
-        <div className="w-6 rounded bg-emerald-500/70 h-20" />
-        <div className="w-6 rounded bg-emerald-500/40 h-12" />
-      </div>
-    </section>
-
     <section className="bg-[#1e293b] border border-slate-700/50 rounded-xl shadow-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">Live Log Output</h3>
